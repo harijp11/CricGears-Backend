@@ -179,9 +179,6 @@ const googleAuth = async (req, res) => {
           message: 'No token provided' 
         });
       }
-      const referalAmount = 200;
-      const ReferalUserData = await User.findOne({ referralCode: usedReferal });
-
       console.log("Attempting to verify token...");
       const ticket = await client.verifyIdToken({
         idToken: token,
