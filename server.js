@@ -15,8 +15,8 @@ const app = express();
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
-      'http://localhost:5173',  // Vite dev server
-      'http://localhost:5000'   // Backend server
+      'https://cricgear.harijp.tech',  // Vite dev server
+      'https://backend-cricgear.harijp.tech'   // Backend server
     ];
     
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
