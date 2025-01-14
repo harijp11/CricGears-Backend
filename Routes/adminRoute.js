@@ -12,6 +12,7 @@ const orderAdminController = require("../Controller/Admin/adminOrderController")
 const offerAdminController = require("../Controller/Admin/AdminOfferController");
 const couponAdminController = require("../Controller/Admin/AdminCouponController")
 const salesReportController = require("../Controller/Admin/salesReportControllere")
+const dashboardController = require("../Controller/Admin/dashboardController");
 
 adminRoute.get("/createadmin/:email", adminController.createAdmin);
 adminRoute.post("/login", adminController.login);
@@ -113,5 +114,8 @@ adminRoute.delete("/deleteCoupon",adminAuth.jwtVrification,couponAdminController
 adminRoute.get("/sales", salesReportController.fetchSalesReport);
 adminRoute.get("/sales/download/pdf", salesReportController.downloadSalesPDF);
 adminRoute.get("/sales/download/excel", salesReportController.downloadSalesExcel);
+
+//Dashboard
+adminRoute.get("/dashboard", adminAuth.jwtVrification, dashboardController.fetchDashBoardData);
 
 module.exports = adminRoute;

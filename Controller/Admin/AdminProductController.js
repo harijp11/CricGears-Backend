@@ -146,7 +146,7 @@ async function fetchProduct(req,res){
             category,
                } = req.body
 
-               console.log("updated cat",category)
+            //    console.log("saleprice",salePrice)
                
                let totalStock = 0
                sizes.forEach((size)=>{
@@ -171,8 +171,9 @@ async function fetchProduct(req,res){
                 },
                 {new:true}
             )
+            
+            await updateData.save()
 
-              await updateData.save()
             if(!updateData){
                 return res
                 .status(400)

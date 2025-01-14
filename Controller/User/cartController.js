@@ -1,4 +1,5 @@
 const Cart = require("../../Models/cartModel")
+const Product = require("../../Models/productModel")
 
 
 async function addCart(req, res) {
@@ -6,6 +7,12 @@ async function addCart(req, res) {
         const {userId, product}=req.body
         console.log("product in cart",product)
         const {productId,size,stock,price,salePrice,qty,discountValue,discountedAmount}=product
+
+        const item = await Product.findOne({_id:productId})
+        if(!item.isActive){
+            return res.status(400).json({message:"Product is not active"})
+        }
+
       
         let cart = await Cart.findOne({userId})
 
@@ -134,10 +141,10 @@ async function fetchCart(req, res) {
 
         // Filter out inactive products
         cartItems.items = cartItems.items.filter(
-            (item) => item.productId?.isActive
+            (item) => item.productId?.isActive && item.productId?.category?.isActive
         )
 
-        let totalDiscount = 0; // Track total discount across all items
+        let totalDiscount = 0;
 
         // Calculate prices for each item
         cartItems.items.forEach((item) => {
@@ -145,31 +152,26 @@ async function fetchCart(req, res) {
             const sizeData = product?.sizes?.find((s) => s.size === item.size)
 
             if (sizeData) {
-                // Update quantity if it exceeds stock
+             
                 if (item.qty > sizeData.stock) {
                     item.qty = sizeData.stock
                 }
 
-                // Set minimum quantity to 1 if stock is available
                 if (item.qty === 0 && sizeData.stock > 0) {
                     item.qty = 1
                 }
 
-                // Get the product's original price and sale price
                 const originalPrice = product.price * item.qty
                 const productSalePrice = product.salePrice || product.price
 
-                // Update item's price information
                 item.price = product.price
                 item.salePrice = productSalePrice
                 item.totalProductPrice = item.qty * productSalePrice
 
-                // Initialize discount tracking for this item
                 let itemDiscount = 0;
                 item.discountValue = 0;
                 item.discountedAmount = 0;
 
-                // Apply any additional discounts from product offers if present
                 if (product.offer && product.offer.isActive) {
                     const discountPercentage = product.offer.percentage
                     const discountAmount = (item.totalProductPrice * discountPercentage) / 100
@@ -188,28 +190,28 @@ async function fetchCart(req, res) {
                     item.totalProductPrice -= discountAmount
                 }
 
-                // Calculate base discount (difference between original price and sale price)
+              
                 const baseDiscount = originalPrice - (item.salePrice * item.qty)
                 if (baseDiscount > 0) {
                     item.discountedAmount += baseDiscount
                     itemDiscount += baseDiscount
                 }
 
-                // Add this item's total discount to the cart total
+              
                 totalDiscount += itemDiscount
             }
         })
 
-        // Calculate total cart price after all discounts
+     
         cartItems.totalCartPrice = cartItems.items.reduce(
             (total, item) => total + (item.totalProductPrice || 0),
             0
         )
 
-        // Update the total discount
+ 
         cartItems.totalDiscount = totalDiscount
 
-        await cartItems.save()
+        // await cartItems.save()
 
         return res
             .status(200)
@@ -231,7 +233,6 @@ async function plusCartItem(req,res) {
         let updated = false
         let cart = await Cart.findOne({userId:userId}).populate({path:"items.productId"})
         
-        let outOF=false
         cart.items.forEach((item)=>{
           const product = item.productId
           const sizeData = product?.sizes?.find((s)=>s.size ===item.size)
@@ -279,13 +280,6 @@ async function minusCartItem(req,res){
             item.qty -= 1
             item.totalProductPrice = item.qty * item.salePrice
         }
-        // if(item.qty===1){
-        //     return res
-        //     .status(200)
-        //     .json({
-        //         success:false,message:"Reached minimum quantity"
-        //     })
-        // }
         return item
       })
 
@@ -303,6 +297,7 @@ async function minusCartItem(req,res){
        console.log(err);
     }
 }
+
 
 async function removeCartItem(req,res){
     try{

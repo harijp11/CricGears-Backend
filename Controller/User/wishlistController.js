@@ -1,11 +1,19 @@
 const Cart = require("../../Models/cartModel")
 const wishlistModel = require("../../Models/wishlistModel")
 const Wishlist = require("../../Models/wishlistModel")
+const Product = require("../../Models/productModel")
 
 async function addToWishlist(req,res){
     try{
       const { product_id,user_id } = req.body
+       
+      const item = await Product.findOne({_id:product_id})
+      if(!item.isActive){
+          return res.status(400).json({message:"Product is not active"})
+      }
+      
       const wishlist = await Wishlist.findOne({userId:user_id})
+
 
       if(!wishlist){
        const wishlist = new Wishlist({

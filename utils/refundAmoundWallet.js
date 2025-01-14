@@ -23,6 +23,7 @@ async function refundAmounttoWallet(userId, refundAmt) {
       });
       await myWallet.save();
     }
+    
     myWallet.balance += +amount;
     const transactions = {
       transactionDate: new Date(),

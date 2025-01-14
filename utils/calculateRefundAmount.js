@@ -1,37 +1,30 @@
-// const product = require("../Models/product");
-
 function calculateRefundAmount(theOrderData, item_id) {
   const orderData = theOrderData.toObject();
   const couponDiscountAmt = orderData.couponDiscount;
   const price_with_coupon = orderData.total_price_with_discount;
-
   const total_without_coupon = price_with_coupon + couponDiscountAmt;
   const orderItems = orderData.orderItems;
 
-  if (couponDiscountAmt > 0) {
-    orderItems.forEach((item) => {
-      if (total_without_coupon > 0) {
-        item.couponDiscountProportion =
-          (item.totalPrice / total_without_coupon) * couponDiscountAmt;
-      } else {
-        item.couponDiscountProportion = 0;
-      }
-    });
-  }
 
-  const cancelledProduct = orderItems.find(
+  const cancelledItem = orderItems.find(
     (item) => item._id.toString() === item_id
   );
 
-  if (!cancelledProduct) {
-    throw new Error("Cancelled product not found in the order items");
+  if (!cancelledItem) {
+    throw new Error("Cancelled item not found in the order items");
   }
 
-  const proportion = cancelledProduct.couponDiscountProportion || 0;
-  const priceOfCancelledProduct =
-    (cancelledProduct.totalPrice || 0) * (cancelledProduct.qty || 1);
+  if (couponDiscountAmt <= 0) {
+    return cancelledItem.totalPrice;
+  }
 
-  return priceOfCancelledProduct - proportion;
+  const itemContribution = cancelledItem.totalPrice;
+  const couponDiscountProportion = (itemContribution / total_without_coupon) * couponDiscountAmt;
+
+  const refundAmount = itemContribution - couponDiscountProportion;
+
+  return Math.round(refundAmount * 100) / 100
 }
+
 
 module.exports = calculateRefundAmount;

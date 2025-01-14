@@ -92,7 +92,7 @@ const productSchema= new mongoose.Schema({
         if (highestDiscount <= 0) {
             this.discountValue = undefined;
             this.discountedAmount = undefined;
-            this.salePrice = this.price-200;
+            this.salePrice = this.price;
             return next();
         }
 

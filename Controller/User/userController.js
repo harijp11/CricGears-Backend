@@ -6,6 +6,7 @@ const genarateRefreshToken=require ("../../utils/genarateRefreshToken.js")
 const {mailSender} =require("../../utils/nodeMailer.js")
 const otpGenerator = require("otp-generator");
 const bcrypt = require("bcrypt");
+const inserMoneytoWallet = require("../../utils/insertMoneytowallet.js")
 
 
 const sendOtp=async(req,res)=>{
@@ -50,17 +51,17 @@ const register = async (req, res) => {
       .join("")}`;
 
     const referalAmount = 200;
-console.log(req.body);
+// console.log(req.body);
 
-    if (usedReferal) {
+    // if (usedReferal) {
       const ReferalUserData = await User.findOne({ referralCode: usedReferal });
-      if (!ReferalUserData) {
-        return res.status(404).json({ 
-          success: false, 
-          message: "Invalid referal code" 
-        });
-      }
-    }
+      // if (!ReferalUserData) {
+      //   return res.status(404).json({ 
+      //     success: false, 
+      //     message: "Invalid referal code" 
+      //   });
+      // }
+    // }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     
@@ -72,12 +73,12 @@ console.log(req.body);
       referralCode:referalCode,
     });
 
-    if (usedReferal) {
+    if (ReferalUserData) {
       newUser.usedReferral = true;
       await newUser.save();
       // Uncomment when ready to implement wallet functions
-      // await inserMoneytoWallet(referalAmount, newUser._id);
-      // await inserMoneytoWallet(referalAmount, ReferalUserData._id);
+      await inserMoneytoWallet(referalAmount, newUser._id);
+      await inserMoneytoWallet(referalAmount, ReferalUserData._id);
     }
 
     return res.status(200).json({

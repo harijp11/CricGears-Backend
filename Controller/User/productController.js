@@ -109,15 +109,22 @@ async function fetchproduct(req,res){
       const{id}=req.body
       const productData =await Product.findById({_id:id}).populate({
         path: "category",
-        match:{isActive:true},
-        select:"name",
-      })
-      // console.log(productData);
-      
+       select: "name isActive", // Add isActive to select
+      });
 
-      if(!productData){
-        return res.status(404).json({ message: "Product not found", success: false });
-      }
+    if (!productData) {
+      return res.status(404).json({ 
+        message: "Product not found", 
+        success: false 
+      });
+    }
+
+    if (!productData.isActive || !productData?.category?.isActive) {
+      return res.status(200).json({
+        message: "This product is no longer available",
+        success: false
+      });
+    }
       return res.status(200).json({
         success: true,
         message: "Product Fetched",

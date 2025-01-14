@@ -70,31 +70,29 @@ const jwtVerification = async (req, res, next) => {
   }
 };
 
-async function checkUserBlocked(req,res,next){
-  try{
-    const {user}=req;
-    console.log("+++++++",user)
-    const userData=await User.findById(user._id)
+async function checkUserBlocked(req, res, next) {
+  try {
+    const { user } = req;
+    const userData = await User.findById(user._id);
 
-    if(!userData){
-      return res
-      .status(404)
-      .json({success:false,message:"User not found"})
-    }
-
-    if(userData.isActive===false){
-      return res
-      .status(403)
-      .json({success:false,message:"user is blocked"})
-    }
-    // console.log("before next");
-    next()
+    if (!userData || userData.isActive === false) {
     
-  }catch(err){
-       console.log(err);
-       return res
-       .status(500)
-       .json({success:false,message:"Internal server error"})   
+      res.clearCookie('accessToken');
+      res.clearCookie('refreshToken');
+      
+      // req.session?.destroy();
+
+      return res.status(403).json({
+        success: false,
+        message: userData ? "User is blocked" : "User not found",
+        action: 'LOGOUT' 
+      });
+    }
+
+    next();
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
 

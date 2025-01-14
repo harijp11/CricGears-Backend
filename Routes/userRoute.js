@@ -57,7 +57,7 @@ userRoute.get("/categories",categoryController.fetchCategory)
 
 
 //Cart Routes
-userRoute.post("/addToCart",cartController.addCart)
+userRoute.post("/addToCart",userAuth.jwtVerification,userAuth.checkUserBlocked,cartController.addCart)
 userRoute.get("/size/:product_id/:user_id/:selected",cartController.fetchSize)
 userRoute.get("/fetchCart/:id",userAuth.jwtVerification,userAuth.checkUserBlocked,
     cartController.fetchCart)
@@ -70,14 +70,16 @@ userRoute.delete("/cart/remove/:cart_id/:user_id",userAuth.jwtVerification,userA
 userRoute.post("/order",userAuth.jwtVerification,userAuth.checkUserBlocked
     ,orderController.createOrder
 )
-userRoute.get("/orders/:_id",userAuth.jwtVerification,orderController.fetchOrders)
+userRoute.get("/orders/:_id",userAuth.jwtVerification,userAuth.checkUserBlocked,orderController.fetchOrders)
 userRoute.put( "/order/cancel/:order_id/:item_id",userAuth.jwtVerification,userAuth.checkUserBlocked,orderController.cancelOrder)
 userRoute.get("/order/:id",userAuth.jwtVerification,userAuth.checkUserBlocked,
     orderController.fetchOrderDetails
 )
 
-userRoute.post("/return/request", orderController.ReturnReq);
-userRoute.post("/download/invoice",orderController.downloadInvoice)
+userRoute.post("/return/request",userAuth.jwtVerification,userAuth.checkUserBlocked,
+    orderController.ReturnReq);
+userRoute.post("/download/invoice",userAuth.jwtVerification,userAuth.checkUserBlocked,
+    orderController.downloadInvoice)
 userRoute.patch("/finishPayment",orderController.finishPayment)
 
 //offer Routes
@@ -88,10 +90,10 @@ userRoute.get("/coupon",userAuth.jwtVerification,couponController.fetchCouponDet
 userRoute.patch("/coupon/update",userAuth.jwtVerification,userAuth.checkUserBlocked,couponController.updateCoupon)
 
 //whislist routes
-userRoute.post("/addToWishlist",userAuth.jwtVerification,wishlistController.addToWishlist)
-userRoute.post("/wishlist/remove",userAuth.jwtVerification,
+userRoute.post("/addToWishlist",userAuth.jwtVerification,userAuth.checkUserBlocked,wishlistController.addToWishlist)
+userRoute.post("/wishlist/remove",userAuth.jwtVerification,userAuth.checkUserBlocked,
     wishlistController.removeFromWishlist)
-userRoute.get("/wishlist",userAuth.jwtVerification,
+userRoute.get("/wishlist",userAuth.jwtVerification,userAuth.checkUserBlocked,
     wishlistController.fetchWishlist)
 userRoute.get("/wishlist/exist",userAuth.jwtVerification,
     wishlistController.checkExistInWishlist
@@ -105,8 +107,8 @@ userRoute.post("/wishlist/isOnCart",
 
 
 //wallet routes
-userRoute.get("/wallet",userAuth.jwtVerification,walletController.fetchWallet)
-userRoute.post("/wallet/AddMoney",userAuth.jwtVerification,walletController.addMoneytoWallet)
+userRoute.get("/wallet",userAuth.jwtVerification,userAuth.checkUserBlocked,walletController.fetchWallet)
+userRoute.post("/wallet/AddMoney",userAuth.jwtVerification,userAuth.checkUserBlocked,walletController.addMoneytoWallet)
 
 
 
