@@ -245,7 +245,7 @@ const googleAuth = async (req, res) => {
           name: user.name,
           phone:user.phone,
           isGoogleUser: !!user.googleId,
-          referalCode:user?.referralCode
+          referralCode:user?.referralCode
         },
         message: "Google authentication successful"
       });
