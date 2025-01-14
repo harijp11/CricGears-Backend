@@ -169,7 +169,9 @@ const googleAuth = async (req, res) => {
     try {
       // console.log("Received request body:", req.body);
       const { token } = req.body;
-      // console.log("token come to backend", token);
+      const referalCode = `CG${[...Array(6)]
+        .map(() => Math.random().toString(36).charAt(2).toUpperCase())
+        .join("")}`;  
       if (!token) {
         console.log("No token found in request");
         return res.status(400).json({ 
@@ -177,6 +179,9 @@ const googleAuth = async (req, res) => {
           message: 'No token provided' 
         });
       }
+      const referalAmount = 200;
+      const ReferalUserData = await User.findOne({ referralCode: usedReferal });
+
       console.log("Attempting to verify token...");
       const ticket = await client.verifyIdToken({
         idToken: token,
@@ -201,7 +206,7 @@ const googleAuth = async (req, res) => {
           email: email,
           name: name,
           isActive: true,
-          
+          referralCode:referalCode,
           // Omit password for Google OAuth users
           password: undefined 
         });
