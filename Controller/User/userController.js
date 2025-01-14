@@ -169,9 +169,11 @@ const googleAuth = async (req, res) => {
     try {
       // console.log("Received request body:", req.body);
       const { token } = req.body;
+
       const referalCode = `CG${[...Array(6)]
         .map(() => Math.random().toString(36).charAt(2).toUpperCase())
-        .join("")}`;  
+        .join("")}`; 
+
       if (!token) {
         console.log("No token found in request");
         return res.status(400).json({ 
@@ -207,6 +209,7 @@ const googleAuth = async (req, res) => {
           // Omit password for Google OAuth users
           password: undefined 
         });
+
         await user.save();
       } else {
         // Update existing user if needed
@@ -242,6 +245,7 @@ const googleAuth = async (req, res) => {
           name: user.name,
           phone:user.phone,
           isGoogleUser: !!user.googleId,
+          referalCode:user?.referralCode
         },
         message: "Google authentication successful"
       });
