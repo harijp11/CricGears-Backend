@@ -32,6 +32,8 @@ const jwtVerification = async (req, res, next) => {
     const accessToken = req.cookies.accessToken;
     const refreshToken = req.cookies.refreshToken;
 
+    console.log("refersh token",refreshToken)
+    
     if (accessToken) {
       const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_KEY);
       const user = await User.findById(decoded.id).select('-password');
@@ -45,9 +47,6 @@ const jwtVerification = async (req, res, next) => {
     } else if (refreshToken) {
       const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_KEY);
       const user = await User.findById(decoded.id).select('-password');
-
-
-      console.log("refersh token",refreshToken)
 
       if (!user) {
         return res.status(401).json({ message: "Unauthorized: User not found" });
