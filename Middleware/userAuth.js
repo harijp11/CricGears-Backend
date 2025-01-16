@@ -45,7 +45,10 @@ const jwtVerification = async (req, res, next) => {
     } else if (refreshToken) {
       const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_KEY);
       const user = await User.findById(decoded.id).select('-password');
-      
+
+
+      console.log("refersh token",refreshToken)
+
       if (!user) {
         return res.status(401).json({ message: "Unauthorized: User not found" });
       }
