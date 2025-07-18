@@ -7,7 +7,6 @@ require('dotenv').config();
 const verifyOtp = async (req, res, next) => {
   try {
     const { otp, email } = req.body;
-    console.log("email==t6w5geythythytth",email);
     
     const otpData = await OTP.findOne({ email });
     console.log('OTP Data Found:', otpData)
@@ -32,7 +31,7 @@ const jwtVerification = async (req, res, next) => {
     const accessToken = req.cookies.accessToken;
     const refreshToken = req.cookies.refreshToken;
 
-    console.log("refersh token",refreshToken)
+    // console.log("refersh token",refreshToken)
     
     if (accessToken) {
       const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_KEY);

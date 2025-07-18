@@ -10,6 +10,7 @@ const { refundAmounttoWallet } = require("../../utils/refundAmoundWallet");
 async function createOrder(req,res){
     try{
     //    console.log("req.body",req.body)
+    console.log("reached create order")
         const {
          user,
          cartItems,

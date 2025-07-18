@@ -45,7 +45,7 @@ async function blockUser(req,res){
         )
         if(!updatedData){
               return res
-              .status(200)
+              .status(400)
               .json({
                 message: "Unable to update, please try again"
               })
@@ -53,9 +53,9 @@ async function blockUser(req,res){
         if (updatedData.isActive) {
             return res
               .status(200)
-              .json({ message: `${updatedData.name} is Unblocked` });
+              .json({success:true, message: `${updatedData.name} is Unblocked` });
           } else {
-            return res.status(200).json({ message: `${updatedData.name} is Blocked` });
+            return res.status(200).json({success:true, message: `${updatedData.name} is Blocked` });
           }
         } catch (err) {
           console.log(err);

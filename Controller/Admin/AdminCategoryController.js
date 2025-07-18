@@ -68,11 +68,15 @@ async function toggleCategory(req, res) {
     }
     if (updatedData.isActive) {
       return res.status(200).json({
+        success:true,
         message: "category enabled",
+        category:updatedData
       });
     } else {
       return res.status(200).json({
+        success: true,
         message: "category disabled",
+        category:updatedData
       });
     }
   } catch (err) {

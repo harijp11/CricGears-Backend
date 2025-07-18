@@ -109,6 +109,7 @@ async function fetchProduct(req,res){
                 return res
                 .status(400)
                 .json({
+                    success:false,
                     message:"unable to update,please try again"
                 })
             }
@@ -117,12 +118,14 @@ async function fetchProduct(req,res){
                 return res
                 .status(200)
                 .json({
+                    success:true,
                     message:"product Listed"
                 })
             }else{
                 return res
                 .status(200)
                 .json({
+                    success:true,
                     message:"product unlisted"
                 })
             }
@@ -146,7 +149,7 @@ async function fetchProduct(req,res){
             category,
                } = req.body
 
-            //    console.log("saleprice",salePrice)
+               console.log("editing datas",salePrice)
                
                let totalStock = 0
                sizes.forEach((size)=>{
@@ -158,7 +161,7 @@ async function fetchProduct(req,res){
             })
 
             const updateData = await Product.findByIdAndUpdate(
-                {_id},
+                _id,
                 {
                     name,
                     description,
@@ -171,8 +174,8 @@ async function fetchProduct(req,res){
                 },
                 {new:true}
             )
-            
-            await updateData.save()
+
+            // await updateData.save()
 
             if(!updateData){
                 return res

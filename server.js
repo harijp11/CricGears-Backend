@@ -2,6 +2,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const dotenv=require('dotenv')
+const morgan = require('morgan');
 const connectToDB=require('./Config/db')
 dotenv.config();
 
@@ -15,8 +16,9 @@ const app = express();
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
-      'https://cricgear.harijp.tech',  // Vite dev server
-      'https://backend-cricgear.harijp.tech'   // Backend server
+      'https://cricgears.harijp.tech',  
+      // 'https://backend-cricgear.harijp.tech',  
+      'http://localhost:5173'
     ];
     
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
@@ -29,7 +31,7 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 };
-
+app.use(morgan('dev'));
 app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
