@@ -221,9 +221,94 @@ const checkSizeAvailable=async(req,res)=>{
  }
 
 
+ async function lockingQuantity(req, res) {
+  try {
+    const cartItems = req.body.cartItems;
+
+    if (!Array.isArray(cartItems) || cartItems.length === 0) {
+      return res.status(400).json({ success: false, message: "Cart is empty" });
+    }
+
+    for (const item of cartItems) {
+      const { productId, size, qty } = item;
+
+      const product = await Product.findOne({
+        _id: productId,
+        "sizes.size": size,
+      });
+
+      if (!product) {
+        return res.status(404).json({ success: false, message: `Product not found: ${productId}` });
+      }
+
+      const sizeObj = product.sizes.find((s) => s.size === size);
+      if (!sizeObj) {
+        return res.status(404).json({ success: false, message: `Size ${size} not found` });
+      }
+
+      const availableQty = sizeObj.stock - sizeObj.locked;
+      if (availableQty < qty) {
+        return res.status(400).json({
+          success: false,
+          message: `Not enough stock for ${product.name} - ${size}`,
+        });
+      }
+    }
+
+    // Lock quantities after validation
+    let items = null;
+    for (const item of cartItems) {
+      const { productId, size, qty } = item;
+
+      items = await Product.updateOne(
+        { _id: productId, "sizes.size": size },
+        { $inc: { "sizes.$.locked": qty } }
+      );
+    }
+
+    console.log("locked items",items)
+    return res.status(200).json({ success: true, message: "All items locked successfully" });
+
+  } catch (err) {
+    console.error("Error locking items:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+}
+
+
+async function unlockQuantities(req, res) {
+  try {
+    const cartItems = req.body.cartItems;
+
+    if (!Array.isArray(cartItems) || cartItems.length === 0) {
+      return res.status(400).json({ success: false, message: "No items to unlock" });
+    }
+
+    for (const item of cartItems) {
+      const { productId, size, qty } = item;
+
+      await Product.updateOne(
+        { _id: productId, "sizes.size": size },
+        { $inc: { "sizes.$.locked": -qty } }
+      );
+    }
+
+    return res.status(200).json({ success: true, message: "Items unlocked successfully" });
+  } catch (err) {
+    console.error("Error unlocking items:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+}
+
+
+
+
+
 module.exports={
     fetchProducts,
     fetchproduct,
     fetchRelatedProducts,
     checkSizeAvailable,
+    lockingQuantity,
+    unlockQuantities
 }

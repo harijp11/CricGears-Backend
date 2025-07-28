@@ -39,7 +39,7 @@ userRoute.post("/resetpassword",userController.resetPassword)
 
 userRoute.post("/address",userAuth.jwtVerification,userAuth.checkUserBlocked,
     addressController.addAddress)
-userRoute.get("/address/:id",addressController.fetchAddress)
+userRoute.get("/address/:id",userAuth.jwtVerification,addressController.fetchAddress)
 userRoute.post("/address/edit",userAuth.jwtVerification,userAuth.checkUserBlocked,addressController.editAddress)
 userRoute.delete("/address/delete/:id",userAuth.jwtVerification,
     userAuth.checkUserBlocked,addressController.deleteAddress)
@@ -54,6 +54,9 @@ userRoute.post("/products/related",ProductController.fetchRelatedProducts)
 userRoute.post("/product/available",ProductController.checkSizeAvailable)
 
 userRoute.get("/categories",categoryController.fetchCategory)
+
+userRoute.post("/product/lock-item", userAuth.jwtVerification, ProductController.lockingQuantity)
+userRoute.post("/product/unlock-items", userAuth.jwtVerification,ProductController.unlockQuantities);
 
 
 //Cart Routes
@@ -80,7 +83,7 @@ userRoute.post("/return/request",userAuth.jwtVerification,userAuth.checkUserBloc
     orderController.ReturnReq);
 userRoute.post("/download/invoice",userAuth.jwtVerification,userAuth.checkUserBlocked,
     orderController.downloadInvoice)
-userRoute.patch("/finishPayment",orderController.finishPayment)
+userRoute.patch("/finishPayment",userAuth.jwtVerification,orderController.finishPayment)
 
 //offer Routes
 userRoute.get("/fetchOffer",offerController.fetchCorrectOffer)

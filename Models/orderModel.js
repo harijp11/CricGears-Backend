@@ -34,8 +34,6 @@ const orderSchema = new mongoose.Schema({
             discount:{
                 type:Number,
                 required:true,
-                min:[0, "Discount cannot be negative"],
-                max:[100,"Discount cannot exceed 100%"],
                 default:0,
             },
             orderStatus:{

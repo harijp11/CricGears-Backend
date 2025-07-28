@@ -19,7 +19,7 @@ const productSchema= new mongoose.Schema({
     },
     salePrice: {
         type: Number,
-        required: true,
+        // required: true,
         min: 0,
         validate: {
           validator: function (value) {
@@ -27,6 +27,7 @@ const productSchema= new mongoose.Schema({
           },
           message: "Sale price should not be greater than the regular price.",
         },
+        default:undefined
       },
       discountValue:{
         type:Number,
@@ -55,6 +56,7 @@ const productSchema= new mongoose.Schema({
         {
           size: { type: String, required: true },
           stock: { type: Number, required: true },
+          locked:{type:Number,default:0}
         },
       ],
       totalStock: {
@@ -77,6 +79,7 @@ const productSchema= new mongoose.Schema({
 
   productSchema.pre('save', async function(next) {
     try {
+      console.log("reaching pre save")
         if (!this.productOffval && !this.catOfferval) {
             this.discountValue = undefined;
             this.discountedAmount = undefined;

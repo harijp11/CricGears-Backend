@@ -30,7 +30,7 @@ function generateDateFilterQuery(filterType, startDate, endDate) {
 
     endWeek.setDate(startWeek.getDate() + 6);
     filteredQuery.placedAt = { $gte: startWeek, $lte: endWeek };
-  } else if (filterType === " monthly") {
+  } else if (filterType === "monthly") {
     const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endMonth = new Date(
       now.getFullYear(),
@@ -51,24 +51,15 @@ function generateDateFilterQuery(filterType, startDate, endDate) {
   return filteredQuery;
 }
 
-async function fetchSalesReport(req, res) {
+const fetchSalesReport = async (req, res) => {
   try {
-    console.log(req.query);
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 5;
-    const skip = (page - 1) * limit;
+    const { page = 0, limit = 15, filterType, startDate, endDate } = req.query;
 
-    const { filterType, startDate, endDate } = req.query;
+    const skip = page * limit;
+    // const query = {}; // your base query
+     const finalQuery = generateDateFilterQuery(filterType, startDate, endDate);
 
-    const filteredQuery = generateDateFilterQuery(
-      filterType,
-      startDate,
-      endDate
-    );
-
-    const totalSalesCount = await Order.find(filteredQuery);
-
-    const orders = await Order.find(filteredQuery)
+    const orders = await Order.find(finalQuery)
       .populate("user")
       .populate("shippingAddress")
       .populate("orderItems.product")
@@ -76,34 +67,52 @@ async function fetchSalesReport(req, res) {
       .skip(skip)
       .limit(limit);
 
-    let totalSales = orders.reduce((total, order) => {
-      const orderTotal = order.orderItems.reduce((orderTotal, orderItem) => {
-        return orderTotal + orderItem.price * orderItem.qty;
-      }, 0);
-      return total + orderTotal;
+    // Filter only Delivered order items per order
+    const filteredOrders = orders
+      .map((order) => {
+        const deliveredItems = order.orderItems.filter(
+          (item) => item.orderStatus === "Delivered"
+        );
+        if (deliveredItems.length === 0) return null;
+
+        return {
+          ...order.toObject(),
+          orderItems: deliveredItems,
+        };
+      })
+      .filter((order) => order !== null);
+
+    // Calculate total sales from filtered data
+    const totalSales = filteredOrders.reduce((acc, order) => {
+      return (
+        acc +
+        order.orderItems.reduce(
+          (itemTotal, item) => itemTotal + item.price * item.qty,
+          0
+        )
+      );
     }, 0);
 
-    res.status(200).json({
-      success: true,
-      orders,
+    // For pagination, calculate total count of filtered orders
+    const totalCount = await Order.countDocuments(finalQuery);
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return res.status(200).json({
+      orders: filteredOrders,
       totalSales,
       currentPage: page,
-      totalPages: Math.ceil(totalSalesCount.length / limit),
+      totalPages,
     });
-  } catch (err) {
-    console.log(err);
-    res.status(500).send({ message: "Internal Server Error" });
+  } catch (error) {
+    console.error("Error in fetchSalesReport:", error.message);
+    return res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 const downloadSalesPDF = async (req, res) => {
   try {
     const { filterType, startDate, endDate } = req.query;
-    const filteredQuery = generateDateFilterQuery(
-      filterType,
-      startDate,
-      endDate
-    );
+    const filteredQuery = generateDateFilterQuery(filterType, startDate, endDate);
 
     const reports = await Order.find(filteredQuery)
       .populate("user")
@@ -112,11 +121,8 @@ const downloadSalesPDF = async (req, res) => {
       .sort({ placedAt: -1 });
 
     const PDFDOC = new PDFDocument({ margin: 50, size: "A4" });
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=sales_report.pdf"
-    );
 
+    res.setHeader("Content-Disposition", "attachment; filename=sales_report.pdf");
     PDFDOC.pipe(res);
 
     PDFDOC.on("pageAdded", () => {
@@ -136,19 +142,32 @@ const downloadSalesPDF = async (req, res) => {
     for (let index = 0; index < reports.length; index++) {
       const report = reports[index];
 
-      if (PDFDOC.y + 100 > PDFDOC.page.height) {
-        PDFDOC.addPage();
-      }
+      // Calculate coupon share for each product
+      const totalOrderAmount = report.totalAmount || 0;
+      const totalCouponDiscount = report.couponDiscount || 0;
+
+      report.orderItems.forEach((item) => {
+        const priceShare = (item.totalPrice || 0) / totalOrderAmount;
+        item._couponShare = parseFloat((priceShare * totalCouponDiscount).toFixed(2));
+      });
+
+      // Filter only delivered items for PDF display
+      const deliveredItems = report.orderItems.filter(
+        (item) => item.orderStatus === "Delivered"
+      );
+      if (deliveredItems.length === 0) continue;
+
+      if (PDFDOC.y + 100 > PDFDOC.page.height) PDFDOC.addPage();
+
       PDFDOC.fontSize(14).font("Helvetica-Bold");
       PDFDOC.text(`Order ${index + 1}:`).moveDown(0.5);
 
       PDFDOC.fontSize(10).font("Helvetica");
-      PDFDOC.text(
-        `Order Date: ${new Date(report.placedAt).toLocaleDateString()}`
-      );
+      PDFDOC.text(`Order Date: ${new Date(report.placedAt).toLocaleDateString()}`);
       PDFDOC.text(`Customer Name: ${report.user.name}`);
       PDFDOC.text(`Payment Method: ${report.paymentMethod}`);
-      PDFDOC.text(`Delivery Status: ${"Delivered"}`).moveDown(0.5);
+      PDFDOC.text(`Delivery Status: Delivered`).moveDown(0.5);
+
       const table = {
         title: "Product Details",
         headers: [
@@ -159,19 +178,19 @@ const downloadSalesPDF = async (req, res) => {
           "Discount (RS)",
           "Coupon (RS)",
         ],
-        rows: report.orderItems.map((item) => [
+        rows: deliveredItems.map((item) => [
           item.product.name,
           item.qty.toString(),
           (Number(item.price) || 0).toFixed(2),
           (Number(item.totalPrice) || 0).toFixed(2),
-          (Number(report.totalDiscount) || 0).toFixed(2),
-          (Number(report.couponDiscount)) === 0 ? `(Not Applied)`: (Number(report.couponDiscount)).toFixed(2)  ,
+          (Number(item.discount) || 0).toFixed(2),
+          Number(item._couponShare) === 0
+            ? `(Not Applied)`
+            : Number(item._couponShare).toFixed(2),
         ]),
       };
 
-      if (PDFDOC.y + 150 > PDFDOC.page.height) {
-        PDFDOC.addPage();
-      }
+      if (PDFDOC.y + 150 > PDFDOC.page.height) PDFDOC.addPage();
 
       try {
         await PDFDOC.table(table, {
@@ -184,16 +203,23 @@ const downloadSalesPDF = async (req, res) => {
       } catch (error) {
         console.error("Error generating table:", error);
       }
+
+      // Calculate final delivered-only total
+      const deliveredTotal = deliveredItems.reduce((acc, item) => acc + item.totalPrice, 0);
+      const deliveredDiscount = deliveredItems.reduce((acc, item) => acc + item.discount, 0);
+      const deliveredCoupon = deliveredItems.reduce((acc, item) => acc + item._couponShare, 0);
+      const finalDeliveredAmount = deliveredTotal - deliveredDiscount - deliveredCoupon;
+
       PDFDOC.moveDown(0.5);
       PDFDOC.font("Helvetica-Bold")
         .fontSize(10)
-        .text(`Final Amount: RS. ${report.total_price_with_discount}`);
+        .text(`Final Amount (Delivered): RS. ${finalDeliveredAmount.toFixed(2)}`);
       PDFDOC.moveDown();
     }
 
     PDFDOC.end();
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).send("Error generating sales report PDF");
   }
 };
@@ -201,17 +227,29 @@ const downloadSalesPDF = async (req, res) => {
 async function downloadSalesExcel(req, res) {
   try {
     const { filterType, startDate, endDate } = req.query;
-    const filteredQuery = generateDateFilterQuery(
-      filterType,
-      startDate,
-      endDate
-    );
+    const filteredQuery = generateDateFilterQuery(filterType, startDate, endDate);
 
     const reports = await Order.find(filteredQuery)
       .populate("user")
       .populate("shippingAddress")
       .populate("orderItems.product")
-      .sort({ placed_at: -1 });
+      .sort({ placedAt: -1 });
+
+    const filteredReports = reports
+      .map((order) => {
+        const deliveredItems = order.orderItems.filter(
+          (item) => item.orderStatus === "Delivered"
+        );
+        if (deliveredItems.length === 0) return null;
+
+        return {
+          ...order.toObject(),
+          orderItems: deliveredItems,
+          allItems: order.orderItems, // include all for total price
+          couponDiscount: order.couponDiscount || 0,
+        };
+      })
+      .filter((order) => order !== null);
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Sales Report");
@@ -226,33 +264,43 @@ async function downloadSalesExcel(req, res) {
       { header: "Unit Price (RS)", key: "unitPrice", width: 15 },
       { header: "Discount (RS)", key: "discount", width: 15 },
       { header: "Coupon (RS)", key: "couponDeduction", width: 15 },
-      { header: "Final Amount (RS)", key: "finalAmount", width: 15 },
+      { header: "Final Amount (RS)", key: "finalAmount", width: 18 },
     ];
 
-    reports.forEach((report) => {
+    filteredReports.forEach((report) => {
       const orderDate = new Date(report.placedAt).toLocaleDateString();
-      const products = report.orderItems.map((item) => ({
-        orderDate,
-        customerName: report.user.name,
-        paymentMethod: report.paymentMethod,
-        orderStatus: item.orderStatus,
-        productName: item.product.name,
-        quantity: item.qty,
-        unitPrice: item.price || 0,
-        totalPrice: item.totalProductPrice || 0, 
-        discount: report.totalDiscount || 0,
-        couponDeduction: report.couponDiscount || 0,
-        finalAmount: report.total_price_with_discount || 0,
-      }));
 
-      // Add each product as a row
-      products.forEach((product) => worksheet.addRow(product));
+      // 🔴 Step 1: Calculate total of all items (delivered + cancelled + returned)
+      const fullOrderTotal = report.allItems.reduce(
+        (sum, item) => sum + item.price * item.qty,
+        0
+      );
+
+      report.orderItems.forEach((item) => {
+        const itemAmount = item.price * item.qty;
+
+        // 🔴 Step 2: Calculate this item's share of total coupon discount
+        const priceShare = fullOrderTotal ? itemAmount / fullOrderTotal : 0;
+        const couponShare = parseFloat((priceShare * report.couponDiscount).toFixed(2));
+
+        const finalAmount = itemAmount - (item.discount || 0) - couponShare;
+
+        worksheet.addRow({
+          orderDate,
+          customerName: report.user.name,
+          paymentMethod: report.paymentMethod,
+          orderStatus: item.orderStatus,
+          productName: item.product.name,
+          quantity: item.qty,
+          unitPrice: item.price || 0,
+          discount: item.discount || 0,
+          couponDeduction: couponShare,
+          finalAmount: finalAmount.toFixed(2),
+        });
+      });
     });
 
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=SalesReport.xlsx"
-    );
+    res.setHeader("Content-Disposition", "attachment; filename=SalesReport.xlsx");
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"

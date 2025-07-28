@@ -29,7 +29,7 @@ async function addProductOffer(req,res){
         const productData = await Product.findOne({_id:id})
         if(!productData){
          return res
-         .sstatus(404)
+         .status(404)
          .json({
             success:false,
             message:"product not found"
@@ -40,8 +40,7 @@ async function addProductOffer(req,res){
       await  productData.save()
      }
      await offer.save()
-     return res
-     .status(200)
+     return res.status(200)
      .json({
         success:true,
         message: `Offer successfully added to ${productName}`,
