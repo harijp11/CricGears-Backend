@@ -3,6 +3,8 @@ const Order = require("../../Models/orderModel");
 const PdfPrinter = require("pdfmake");
 const PDFDocument = require("pdfkit-table");
 const ExcelJS = require("exceljs");
+const HttpStatusCode = require("../../shared/httpStatusCodes");
+const { CommonErrorMessages } = require("../../shared/messages");
 
 function generateDateFilterQuery(filterType, startDate, endDate) {
   const now = new Date();
@@ -105,7 +107,10 @@ const fetchSalesReport = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in fetchSalesReport:", error.message);
-    return res.status(500).json({ message: "Internal server error" });
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
   }
 };
 
@@ -220,7 +225,10 @@ const downloadSalesPDF = async (req, res) => {
     PDFDOC.end();
   } catch (err) {
     console.error(err);
-    res.status(500).send("Error generating sales report PDF");
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
   }
 };
 
@@ -310,7 +318,10 @@ async function downloadSalesExcel(req, res) {
     res.end();
   } catch (err) {
     console.error("Error generating Excel report:", err);
-    res.status(500).send("Error generating sales report Excel");
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
   }
 }
 

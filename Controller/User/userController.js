@@ -38,7 +38,10 @@ const sendOtp=async(req,res)=>{
 
   }catch(err){
     console.log(err);
-    res.json({message:"error"})
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
   }
 }
 
@@ -88,9 +91,9 @@ const register = async (req, res) => {
 
   } catch (err) {
     console.error("Registration failed:", err);
-    return res.status(500).json({
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: "Registration failed"
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
     });
   }
 };
@@ -150,16 +153,18 @@ const login= async(req,res)=>{
         })
     }catch(err){
         console.log("Unexpected error during login:",err);
-        return res.status(500).json({
-          success:false,
-          message:"Internal server error.please try again later.",
-        })
+         return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
     }
 }
 
 
 const { OAuth2Client } = require('google-auth-library');
 const generateRefreshToken = require('../../utils/genarateRefreshToken.js')
+const HttpStatusCode = require('../../shared/httpStatusCodes.js')
+const { CommonErrorMessages } = require('../../shared/messages.js')
 const client = new OAuth2Client({
   clientId: process.env.VITE_GOOGLE_CLIENT_ID,
   clientSecret: process.env.VITE_GOOGLE_CLIENT_SECRET_KEY
@@ -253,11 +258,10 @@ const googleAuth = async (req, res) => {
     } catch (error) {
       console.error('Detailed Google Auth Error:', error);
       
-      res.status(400).json({ 
-        success: false, 
-        message: 'Authentication failed',
-        errorDetails: error.message 
-      });
+       return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
     }
   };
 
@@ -284,10 +288,10 @@ const googleAuth = async (req, res) => {
       });
     } catch (err) {
       console.error('Logout error:', err);
-      return res.status(500).json({
-        success: false,
-        message: 'Error during logout'
-      });
+       return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
     }
   };
 
@@ -324,7 +328,10 @@ const googleAuth = async (req, res) => {
       .json({success:true,message:"OTP sended successfully",otp})
     }catch(err){
       console.log(err);
-      
+       return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
     }
   }
 
@@ -350,6 +357,10 @@ const googleAuth = async (req, res) => {
       })
     }catch(err){
       console.log(err);
+       return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+          });
     }
   }
 
@@ -385,12 +396,10 @@ const googleAuth = async (req, res) => {
       })
      }catch(err){
       console.log(err);
-      return res
-      .status(500)
-      .json({
-        success:false,
-        message:"internal server error"
-      })
+       return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
      }
   }
 
@@ -419,6 +428,10 @@ const googleAuth = async (req, res) => {
        .json({success:true,message:"User updated successfully",user})
      }catch(err){
        console.log(err);  
+        return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+             success: false,
+             message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+           });
     }
   }
 
@@ -449,6 +462,10 @@ const changePassword=async(req,res)=>{
       })
   }catch(err){
     console.log(err);
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+        });
   }
 }
 

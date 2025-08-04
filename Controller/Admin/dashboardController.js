@@ -1,6 +1,8 @@
 const User = require("../../Models/userModel");
 const Order = require("../../Models/orderModel");
 const Product = require("../../Models/productModel");
+const HttpStatusCode = require("../../shared/httpStatusCodes");
+const { CommonErrorMessages } = require("../../shared/messages");
 
 async function fetchDashBoardData(req, res) {
   try {
@@ -206,10 +208,9 @@ async function fetchDashBoardData(req, res) {
 
   } catch (err) {
     console.error("Error fetching dashboard data:", err);
-    res.status(500).json({
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: "Failed to fetch dashboard data",
-      error: err.message,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
     });
   }
 }

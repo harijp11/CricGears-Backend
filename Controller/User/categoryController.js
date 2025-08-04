@@ -1,4 +1,6 @@
 const category = require("../../Models/categoryModel");
+const HttpStatusCode = require("../../shared/httpStatusCodes");
+const { CommonErrorMessages } = require("../../shared/messages");
 
 async function fetchCategory(req, res) {
   try {
@@ -17,7 +19,10 @@ async function fetchCategory(req, res) {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
   }
 }
 

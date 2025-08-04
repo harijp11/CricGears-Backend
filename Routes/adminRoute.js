@@ -73,6 +73,9 @@ adminRoute.post(
   adminAuth.jwtVrification,
   productAdminController.addProduct
 );
+
+
+
 adminRoute.get(
   "/fetchProducts",
   adminAuth.jwtVrification,
@@ -83,6 +86,13 @@ adminRoute.put(
   adminAuth.jwtVrification,
   productAdminController.toggleProduct
 );
+
+adminRoute.get(
+  "/product/:productId",
+  adminAuth.jwtVrification,
+  productAdminController.fetchProductById
+);
+
 adminRoute.put(
   "/editProduct",
   adminAuth.jwtVrification,

@@ -42,7 +42,9 @@ const CategoryErrorMessages = {
   UNABLE_TO_ADD_CATEGORY: "Unable to add category.",
   CATEGORY_FETCH_FAILED: "Failed to fetch categories.",
   CATEGORY_UPDATE_FAILED: "Unable to update category.",
+  UNABLE_TO_FETCH_CATEGORY:"unable to fetch data from category",
 };
+
 
 const CategorySuccessMessages = { 
   CATEGORY_ADDED: (name) => `${name} has been added successfully.`,

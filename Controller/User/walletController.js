@@ -1,4 +1,6 @@
 const Wallet = require("../../Models/walletModel");
+const HttpStatusCode = require("../../shared/httpStatusCodes");
+const { CommonErrorMessages } = require("../../shared/messages");
 
 async function addMoneytoWallet(req, res) {
   try {
@@ -40,6 +42,10 @@ async function addMoneytoWallet(req, res) {
     return res.json({ success: true, message: "Amount added to wallet " });
   } catch (err) {
     console.log(err);
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+        });
   }
 }
 
@@ -88,6 +94,10 @@ async function fetchWallet(req, res) {
       });
   } catch (err) {
     console.log(err);
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+        });
   }
 }
 

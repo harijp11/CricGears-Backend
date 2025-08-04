@@ -1,4 +1,6 @@
-const Coupon = require("../../Models/couponModel")
+const Coupon = require("../../Models/couponModel");
+const HttpStatusCode = require("../../shared/httpStatusCodes");
+const { CommonErrorMessages } = require("../../shared/messages");
 
 async function fetchCouponDetails(req,res){
     try{
@@ -18,6 +20,10 @@ async function fetchCouponDetails(req,res){
     .json({ message: "couponData fetched successfully", CouponData:couponData });
     }catch(err){
       console.log(err)
+       return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+          });
     }
 }
 
@@ -48,6 +54,10 @@ async function updateCoupon(req,res){
       await couponData.save()
     }catch(err){
         console.log("Error updating coupon:", err); 
+         return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+              success: false,
+              message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+            });
     }
 }
 

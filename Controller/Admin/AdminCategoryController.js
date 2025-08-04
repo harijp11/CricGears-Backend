@@ -1,5 +1,7 @@
 const bcrypt = require("bcrypt");
 const Category = require("../../Models/categoryModel");
+const HttpStatusCode = require("../../shared/httpStatusCodes");
+const { CategoryErrorMessages, CategorySuccessMessages, CommonErrorMessages } = require("../../shared/messages");
 
 async function addCategory(req, res) {
   try {
@@ -10,17 +12,21 @@ async function addCategory(req, res) {
     });
     const done = await category.save();
     if (!done) {
-      return res.status(404).json({
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
         success: false,
-        message: "unable to add category",
+        message:CategoryErrorMessages.UNABLE_TO_ADD_CATEGORY,
       });
     }
-    return res.status(200).json({
+    return res.status(HttpStatusCode.OK).json({
       success: true,
-      message: `${name} is added to categories`,
+      message: CategorySuccessMessages.CATEGORY_ADDED,
     });
   } catch (err) {
     console.log(err);
+    res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success:false,
+      message:CommonErrorMessages.INTERNAL_SERVER_ERROR
+    })
   }
 }
 
@@ -33,14 +39,14 @@ async function fetchCategory(req, res) {
 
     const categories = await Category.find().skip(skip).limit(limit);
     if (!categories) {
-      return res.status(404).json({
+      return res.status(HttpStatusCode.NOT_FOUND).json({
         success: false,
-        message: "Category fetched failed",
+        message: CategoryErrorMessages.CATEGORY_FETCH_FAILED,
       });
     }
-    return res.status(200).json({
+    return res.status(HttpStatusCode.OK).json({
       success: true,
-      message: "Category fetched successfully",
+      message: CategorySuccessMessages.CATEGORY_FETCHED,
       categories,
       currentPage: page,
       totalPages: Math.ceil(totalCategory / limit),
@@ -48,6 +54,10 @@ async function fetchCategory(req, res) {
     });
   } catch (err) {
     console.log(err);
+     res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success:false,
+      message:CommonErrorMessages.INTERNAL_SERVER_ERROR
+    })
   }
 }
 
@@ -61,26 +71,30 @@ async function toggleCategory(req, res) {
     );
 
     if (!updatedData) {
-      return res.status(400).json({
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
         success: false,
-        message: "unable to update, please try again later",
+        message: CategoryErrorMessages.CATEGORY_UPDATE_FAILED,
       });
     }
     if (updatedData.isActive) {
-      return res.status(200).json({
+      return res.status(HttpStatusCode.OK).json({
         success:true,
-        message: "category enabled",
+        message:CategorySuccessMessages.CATEGORY_ENABLED,
         category:updatedData
       });
     } else {
-      return res.status(200).json({
+      return res.status(HttpStatusCode.OK).json({
         success: true,
-        message: "category disabled",
+        message:CategorySuccessMessages.CATEGORY_DISABLED,
         category:updatedData
       });
     }
   } catch (err) {
     console.log(err);
+     res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success:false,
+      message:CommonErrorMessages.INTERNAL_SERVER_ERROR
+    })
   }
 }
 
@@ -90,18 +104,22 @@ async function getCategory(req, res) {
     const categoryData = await Category.findOne({ _id: id });
 
     if (!categoryData) {
-      return res.status(404).json({
+      return res.status(HttpStatusCode.NOT_FOUND).json({
         success: false,
-        message: "unable to fetch data from category",
+        message: CategoryErrorMessages.UNABLE_TO_FETCH_CATEGORY,
       });
     }
-    return res.status(200).json({
+    return res.status(HttpStatusCode.OK).json({
       success: true,
-      message: "category fetched successfully",
+      message: CategorySuccessMessages.CATEGORY_FETCHED,
       categoryData,
     });
   } catch (err) {
     console.log(err);
+     res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success:false,
+      message:CommonErrorMessages.INTERNAL_SERVER_ERROR
+    })
   }
 }
 
@@ -115,19 +133,22 @@ async function editcategory(req, res) {
     );
 
     if (!updatedData) {
-      return res.res(400).json({
+      return res.res(HttpStatusCode.BAD_REQUEST).json({
         success: false,
-        message: "unable to update",
+        message: CategoryErrorMessages.CATEGORY_UPDATE_FAILED,
       });
     }
-    return res.status(200).json({
+    return res.status(HttpStatusCode.OK).json({
       success: true,
-      message: "category updated",
+      message: CategorySuccessMessages.CATEGORY_UPDATED,
       updatedData,
     });
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return  res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success:false,
+      message:CommonErrorMessages.INTERNAL_SERVER_ERROR
+    })
   }
 }
 
@@ -136,20 +157,23 @@ async function sendCategory(req, res) {
     const categories = await Category.find({ isActive: true });
 
     if (categories.length === 0) {
-      return res.status(404).json({
+      return res.status(HttpStatusCode.NOT_FOUND).json({
         success: false,
-        message: "category not found",
+        message: CategoryErrorMessages.CATEGORY_NOT_FOUND,
       });
     }
 
-    return res.status(200).json({
+    return res.status(HttpStatusCode.OK).json({
       success: true,
-      message: "categories fetched successfully",
+      message: CategorySuccessMessages.CATEGORY_FETCHED,
       categories,
     });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success:false,
+      message:CommonErrorMessages.INTERNAL_SERVER_ERROR
+    })
   }
 }
 
@@ -165,19 +189,20 @@ async function checkCategory(req, res) {
     });
     if (category) {
       return res
-        .status(400)
-        .json({ success: false, message: "Category already exists" });
+        .status(HttpStatusCode.BAD_REQUEST)
+        .json({ success: false, message: CategoryErrorMessages.CATEGORY_ALREADY_EXISTS });
     }
 
     return res
-      .status(200)
-      .json({ success: true, message: "Category is available" });
+      .status(HttpStatusCode.OK)
+      .json({ success: true, message:CategorySuccessMessages.CATEGORY_AVAILABLE });
 
   } catch (err) {
     console.log(err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success:false,
+      message:CommonErrorMessages.INTERNAL_SERVER_ERROR
+    })
   }
 }
 

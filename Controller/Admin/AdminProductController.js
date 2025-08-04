@@ -1,6 +1,8 @@
 const bcrypt = require("bcrypt");
 const Product = require("../../Models/productModel");
 const Offer = require("../../Models/offerModel");
+const HttpStatusCode = require("../../shared/httpStatusCodes");
+const { CommonErrorMessages } = require("../../shared/messages");
 
 async function addProduct(req, res) {
   try {
@@ -37,7 +39,7 @@ async function addProduct(req, res) {
 
     const productOffer = await Offer.findOne({ targetId: product._id });
     const catOffer = await Offer.findOne({ targetId: product.category });
-    console.log("offers", catOffer, productOffer);
+    // console.log("offers", catOffer, productOffer);
 
     product.productOffval = productOffer?.offerValue || null;
     product.offer = productOffer?._id || null;
@@ -54,9 +56,10 @@ async function addProduct(req, res) {
       message: "Product added successfully",
     });
   } catch (err) {
-    return res
-      .status(500)
-      .json({ message: "Internal server error", error: err });
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
   }
 }
 
@@ -94,6 +97,10 @@ async function fetchProduct(req, res) {
     });
   } catch (err) {
     console.log(err);
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+        });
   }
 }
 
@@ -131,6 +138,42 @@ async function toggleProduct(req, res) {
     }
   } catch (err) {
     console.log(err);
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+        });
+  }
+}
+
+async function fetchProductById(req,res) {
+  try {
+    const { productId } = req.params;
+
+    if (!productId) {
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
+        success: false,
+        message: "product id required",
+      });
+    }
+
+    const product = await Product.findOne({ _id: productId });
+    if (!product) {
+      return res.status(HttpStatusCode.NOT_FOUND).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+    res.status(HttpStatusCode.OK).json({
+      success: true,
+      message: "product details fetched",
+      product
+    });
+  } catch (err) {
+    console.log(err);
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+        });
   }
 }
 
@@ -147,7 +190,7 @@ async function editProduct(req, res) {
       category,
     } = req.body;
 
-    console.log("editing datas", salePrice);
+    // console.log("editing datas", salePrice);
 
     let totalStock = 0;
     sizes.forEach((size) => {
@@ -175,12 +218,12 @@ async function editProduct(req, res) {
 
     const productOffer = await Offer.findOne({ targetId: updateData._id });
     const catOffer = await Offer.findOne({ targetId: updateData.category });
-    console.log("offers", catOffer, productOffer);
+    // console.log("offers", catOffer, productOffer);
     updateData.productOffval = productOffer?.offerValue || null;
     updateData.offer = productOffer?._id || null;
     updateData.catOfferval = catOffer?.offerValue || null;
 
-    console.log("updated data", updateData);
+    // console.log("updated data", updateData);
     await updateData.save();
 
     if (!updateData) {
@@ -195,6 +238,10 @@ async function editProduct(req, res) {
     });
   } catch (err) {
     console.log(err);
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+        });
   }
 }
 
@@ -202,5 +249,6 @@ module.exports = {
   addProduct,
   fetchProduct,
   toggleProduct,
+  fetchProductById,
   editProduct,
 };

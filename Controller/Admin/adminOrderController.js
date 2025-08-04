@@ -1,4 +1,6 @@
 const Order = require("../../Models/orderModel");
+const HttpStatusCode = require("../../shared/httpStatusCodes");
+const { CommonErrorMessages } = require("../../shared/messages");
 const calculateRefundAmount = require("../../utils/calculateRefundAmount");
 const {refundAmounttoWallet} = require("../../utils/refundAmoundWallet");
 
@@ -27,10 +29,9 @@ async function fetchOrders(req, res) {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: "Internal server error",
-      error: err.message,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
     });
   }
 }
@@ -73,9 +74,10 @@ async function fetchOrders(req, res) {
         .json({ success: true, message: "orders status updated" });
     } catch (err) {
       console.log(err);
-      return res
-        .status(500)
-        .json({ success: false, message: "Internal server error", error: err });
+       return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
     }
   }
 
@@ -91,7 +93,10 @@ async function fetchOrders(req, res) {
       return res.status(200).json({success:true,message:"Details fetched successfully",order})
     }catch(err){
         console.log(err);
-        
+         return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+              success: false,
+              message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+            });
     }
   }
 
@@ -124,6 +129,10 @@ async function fetchOrders(req, res) {
       });
     }catch(err){
       console.log(err);
+       return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+          });
     }
   }
 

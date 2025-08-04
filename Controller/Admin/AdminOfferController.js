@@ -2,6 +2,8 @@ const Category = require("../../Models/categoryModel");
 const Offer = require("../../Models/offerModel");
 
 const Product = require("../../Models/productModel");
+const HttpStatusCode = require("../../shared/httpStatusCodes");
+const { CommonErrorMessages } = require("../../shared/messages");
 
 
 async function addProductOffer(req,res){
@@ -47,9 +49,10 @@ async function addProductOffer(req,res){
      })
     }catch(err){
         console.log(err);
-        return res
-        .status(500)
-        .json({ success: false, message: "Error adding offer" });
+         return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
     }
 }
 
@@ -71,6 +74,10 @@ async function fetchProdOffer(req,res){
       })
   }catch(err){
      console.log(err);
+      return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
   }
 }
 
@@ -136,6 +143,10 @@ async function addCategoryOffer(req,res){
       })
     }catch(err){
       console.log(err);
+       return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
     }
 }
 
@@ -155,6 +166,10 @@ async function fetchCatOffer(req,res){
           })
     }catch(err){
         console.log(err);
+         return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+              success: false,
+              message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+            });
     }
 }
 
@@ -212,7 +227,7 @@ async function deleteOffer(req,res){
             }));
        }
 
-       console.log("category",category)
+      //  console.log("category",category)
 
        if(deleted.deletedCount === 1) {
         return res.status(200).json({ message: "Deleted successfully" });
@@ -223,7 +238,10 @@ async function deleteOffer(req,res){
       }
     } catch (err) {
       console.error(err);
-      return res.status(500).json({ message: "Internal Server Error" })
+      return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
     }
   }
 

@@ -5,6 +5,8 @@ const Product = require("../../Models/productModel");
 const Wallet = require("../../Models/walletModel");
 const calculateRefundAmount = require("../../utils/calculateRefundAmount");
 const { refundAmounttoWallet } = require("../../utils/refundAmoundWallet");
+const HttpStatusCode = require("../../shared/httpStatusCodes");
+const { CommonErrorMessages } = require("../../shared/messages");
 
 async function createOrder(req, res) {
   try {
@@ -106,6 +108,10 @@ async function createOrder(req, res) {
       .json({ message: "Order created successfully", order: order });
   } catch (err) {
     console.log(err);
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+        });
   }
 }
 
@@ -124,8 +130,11 @@ async function manageProductQty(orderItems) {
         console.log(`Size ${item.size} not found for product ${product._id}`);
       }
     } catch (err) {
-      console.log(err);
       console.error(`Error fetching product ${item.product}:`, err);
+       return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+          });
     }
   }
 }
@@ -163,6 +172,10 @@ async function fetchOrders(req, res) {
     });
   } catch (err) {
     console.log(err);
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+        });
   }
 }
 
@@ -183,6 +196,10 @@ async function fetchOrderDetails(req, res) {
       .json({ success: true, message: "Details fetched ", order });
   } catch (err) {
     console.log(err);
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+        });
   }
 }
 
@@ -243,7 +260,10 @@ async function cancelOrder(req, res) {
       });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ success: false, message: "Server error" });
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
   }
 }
 
@@ -267,8 +287,11 @@ async function manageProductQtyAfterCancel(itemToUpdate) {
       );
     }
   } catch (err) {
-    console.log(err);
     console.error(`Error fetching product ${itemToUpdate.product}:`, err);
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+        });
   }
 }
 
@@ -303,6 +326,10 @@ async function ReturnReq(req, res) {
       .json({ message: "Return request registered successfully" });
   } catch (err) {
     console.log(err);
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+        });
   }
 }
 
@@ -327,7 +354,10 @@ async function downloadInvoice(req, res) {
     PDFDOC.end();
   } catch (err) {
     console.log(err);
-    res.status(500).send("Error generating invoice PDF");
+    return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
   }
 }
 
@@ -532,6 +562,10 @@ async function finishPayment(req, res) {
     res.status(200).json({ message: "Payment Successfull" });
   } catch (err) {
     console.log(err);
+     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+        });
   }
 }
 

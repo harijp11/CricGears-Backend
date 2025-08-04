@@ -1,4 +1,6 @@
-const Offer = require("../../Models/offerModel")
+const Offer = require("../../Models/offerModel");
+const HttpStatusCode = require("../../shared/httpStatusCodes");
+const { CommonErrorMessages } = require("../../shared/messages");
 
 async function fetchCorrectOffer(req,res){
     try{
@@ -16,6 +18,10 @@ async function fetchCorrectOffer(req,res){
         categoryoffer: categoryoffer ? categoryoffer?.offerValue : null,})
     }catch(err){
         console.log(err)
+         return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+              success: false,
+              message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+            });
     }
 }
 
