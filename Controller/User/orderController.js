@@ -69,10 +69,10 @@ async function createOrder(req, res) {
     await cart.save();
     manageProductQty(order.orderItems);
 
-    if(payment_method === "RazorPay"){
+    if(payment_method === "RazorPay" && payment_status === "Paid"){
     for (const item of order.orderItems) {
       await Product.updateOne(
-        { _id: item.product, "sizes.size": item.size },
+        { _id: item.product, "sizes.size": item.size,"sizes.locked": { $gte: item.qty } },
         {
           $inc: {
             "sizes.$.locked": -item.qty, // unlock

@@ -65,12 +65,12 @@ async function removeFromWishlist(req,res){
 
 async function checkExistInWishlist(req,res){
     try{
-       const { product_id,user_id } = req.body
+       const { product_id,user_id } = req.query
 
        const wishlist = await Wishlist.findOne({userId:user_id})
 
-       if(wishlist && wishlist.items.find(item => item.productId === product_id)){
-        return res.status(200).json({message:"Product exists in wishlist"})
+       if(wishlist && wishlist.items.find(item => item.productId.toString() === product_id)){
+        return res.status(200).json({success:true,message:"Product exists in wishlist"})
        }
        return res.status(404).json({ success: false });
     }catch(err){

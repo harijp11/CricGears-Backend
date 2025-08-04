@@ -288,7 +288,7 @@ async function unlockQuantities(req, res) {
       const { productId, size, qty } = item;
 
       await Product.updateOne(
-        { _id: productId, "sizes.size": size },
+        { _id: productId, "sizes.size": size,"sizes.locked": { $gte: item.qty } },
         { $inc: { "sizes.$.locked": -qty } }
       );
     }
