@@ -116,6 +116,8 @@ adminRoute.get("/fetchProdOffer",adminAuth.jwtVrification,offerAdminController.f
 
 //coupon routes
 adminRoute.post("/addCoupon",adminAuth.jwtVrification,couponAdminController.addCoupon)
+adminRoute.put("/editCoupon",adminAuth.jwtVrification,couponAdminController.editCoupon)
+adminRoute.get("/fetchById/:couponId",adminAuth.jwtVrification,couponAdminController.couponFetchById)
 adminRoute.get("/fetchCoupons",couponAdminController.fetchCoupons)
 adminRoute.delete("/deleteCoupon",adminAuth.jwtVrification,couponAdminController.deleteCoupon)
 

@@ -67,10 +67,16 @@ async function fetchProduct(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
+     const search = req.query.search || ""
     const skip = (page - 1) * limit;
-    const totalProducts = await Product.countDocuments();
+    
+     const searchFilter = search
+      ? { name: { $regex:search, $options: "i" } } 
+      : {};
 
-    const products = await Product.find({})
+    const totalProducts = await Product.countDocuments(searchFilter);
+
+    const products = await Product.find(searchFilter).sort({createdAt:-1})
       .populate({
         path: "category",
         match: { isActive: true },

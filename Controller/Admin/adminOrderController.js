@@ -9,9 +9,14 @@ async function fetchOrders(req, res) {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const skip = (page - 1) * limit;
-    const totalOrders = await Order.countDocuments();
+     const search = req.query.search || ""
 
-    const orders = await Order.find()
+       const searchFilter = search
+      ? { orderId: { $regex: search, $options: "i" } } 
+      : {};
+    const totalOrders = await Order.countDocuments(searchFilter);
+
+    const orders = await Order.find(searchFilter)
       .populate("user")
       .populate("shippingAddress")
       .populate("orderItems.product")
@@ -59,7 +64,12 @@ async function fetchOrders(req, res) {
           message: "Item not found",
         });
       }
-
+      console.log("order",orderData)
+     
+      if( itemToUpdate.paymentStatus !== "Paid" && orderData.paymentMethod === "RazorPay"){
+        return res.status(409).json({success:false,message:"User not paid yet"})
+      }
+     
       if (newStatus == "Delivered") {
         itemToUpdate.paymentStatus = "Paid";
         itemToUpdate.deliveredOn = new Date();

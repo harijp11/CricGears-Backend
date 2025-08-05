@@ -87,6 +87,9 @@ userRoute.patch("/finishPayment",userAuth.jwtVerification,orderController.finish
 
 //offer Routes
 userRoute.get("/fetchOffer",offerController.fetchCorrectOffer)
+//coupon
+userRoute.get("/coupons",userAuth.jwtVerification,couponController.fetchCoupons)
+
 
 //coupon routes
 userRoute.get("/coupon",userAuth.jwtVerification,couponController.fetchCouponDetails)

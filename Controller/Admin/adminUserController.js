@@ -7,10 +7,15 @@ async function getUsers(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
+     const search = req.query.search || ""
     const skip = (page - 1) * limit;
-    const totalUsers = await User.countDocuments();
+    
+       const searchFilter = search
+      ? { name: { $regex: search, $options: "i" } } 
+      : {};
+      const totalUsers = await User.countDocuments(searchFilter);
 
-    const userData = await User.find().skip(skip).limit(limit);
+    const userData = await User.find(searchFilter).sort({createdAt:-1}).skip(skip).limit(limit);
 
     if (!userData) {
       return res

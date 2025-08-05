@@ -27,6 +27,29 @@ async function fetchCouponDetails(req,res){
     }
 }
 
+async function fetchCoupons(req, res) {
+  try {
+      const Coupons = await Coupon.find()
+      .sort({ createdAt: -1 })
+
+    if (!Coupons) {
+      return res.status(404).json({ message: "No coupons found" });
+    }
+    return res
+      .status(200)
+      .json({
+        message: "Coupons fetched successfully",
+        Coupons,
+      });
+  } catch (err) {
+    console.log("Error", err);
+    return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: CommonErrorMessages.INTERNAL_SERVER_ERROR,
+    });
+  }
+}
+
 async function updateCoupon(req,res){
     try{
       const {coupon_id, user_id } = req.body
@@ -64,4 +87,5 @@ async function updateCoupon(req,res){
 module.exports = {
     fetchCouponDetails,
     updateCoupon,
+    fetchCoupons
 }

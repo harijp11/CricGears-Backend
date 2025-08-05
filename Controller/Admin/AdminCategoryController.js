@@ -34,10 +34,16 @@ async function fetchCategory(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
+    const search = req.query.search || ""
     const skip = (page - 1) * limit;
-    const totalCategory = await Category.countDocuments();
 
-    const categories = await Category.find().skip(skip).limit(limit);
+     const searchFilter = search
+      ? { name: { $regex: search, $options: "i" } } 
+      : {};
+    console.log("search",searchFilter)
+    const categories = await Category.find(searchFilter).sort({createdAt:-1}).skip(skip).limit(limit);
+
+    const totalCategory = await Category.countDocuments(searchFilter);
     if (!categories) {
       return res.status(HttpStatusCode.NOT_FOUND).json({
         success: false,

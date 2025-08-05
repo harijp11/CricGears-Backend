@@ -45,16 +45,119 @@ async function addCoupon(req, res) {
   }
 }
 
+async function couponFetchById(req, res) {
+  try {
+    const { couponId } = req.params;
+    if (!couponId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "couponId is required" });
+    }
+    const coupon = await Coupon.findById(couponId);
+    if (!coupon) {
+      res.status(404).json({
+        success: false,
+        message: "Coupon not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Coupon fetched succesfully",
+      coupon,
+    });
+  } catch (err) {
+    console.log("Error", err);
+  }
+}
+
+async function editCoupon(req, res) {
+  try {
+    const { coupon } = req.body;
+
+    if (!coupon || !coupon._id) {
+      return res.status(400).json({
+        success: false,
+        message: "Coupon ID is required",
+      });
+    }
+
+    const {
+      code,
+      description,
+      discountValue,
+      minPurchaseAmount,
+      maxDiscountAmount,
+      expirationDate,
+      usageLimit,
+    } = coupon;
+
+    const updatedCoupon = await Coupon.findByIdAndUpdate(
+      coupon._id,
+      {
+        code,
+        description,
+        discountValue,
+        minPurchaseAmount,
+        maxDiscountAmount,
+        expirationDate,
+        usageLimit,
+      },
+      { new: true }
+    );
+
+    if (!updatedCoupon) {
+      return res.status(404).json({
+        success: false,
+        message: "Coupon not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Coupon updated successfully",
+      data: updatedCoupon,
+    });
+  } catch (err) {
+    console.error("Error updating coupon:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+}
+
 async function fetchCoupons(req, res) {
   try {
-    const Coupons = await Coupon.find();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+    const search = req.query.search || "";
+
+    const searchFilter = search
+      ? { code: { $regex: search, $options: "i" } }
+      : {};
+
+    const totalCoupons = await Coupon.countDocuments(searchFilter);
+
+    const Coupons = await Coupon.find(searchFilter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     if (!Coupons) {
       return res.status(404).json({ message: "No coupons found" });
     }
     return res
       .status(200)
-      .json({ message: "Coupons fetched successfully", Coupons });
+      .json({
+        message: "Coupons fetched successfully",
+        Coupons,
+        currentPage: page,
+        totalPages: Math.ceil(totalCoupons / limit),
+        totalCoupons,
+      });
   } catch (err) {
     console.log("Error", err);
     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
@@ -87,4 +190,6 @@ module.exports = {
   addCoupon,
   fetchCoupons,
   deleteCoupon,
+  editCoupon,
+  couponFetchById,
 };
