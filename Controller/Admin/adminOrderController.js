@@ -124,7 +124,7 @@ async function fetchOrders(req, res) {
         returnItem.orderStatus = "Return Rejected";
       }
 
-      orderData.save()
+      await orderData.save()
 
       const refundAmount = calculateRefundAmount(orderData, itemId);
 
