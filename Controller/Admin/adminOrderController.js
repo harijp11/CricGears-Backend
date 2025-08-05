@@ -67,7 +67,7 @@ async function fetchOrders(req, res) {
       console.log("order",orderData)
      
       if( itemToUpdate.paymentStatus !== "Paid" && orderData.paymentMethod === "RazorPay"){
-        return res.status(409).json({success:false,message:"User not paid yet"})
+        return res.status(422).json({success:false,message:"Order cannot be updated as the Razorpay payment has not been completed."})
       }
      
       if (newStatus == "Delivered") {
